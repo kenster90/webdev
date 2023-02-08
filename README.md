@@ -1,1 +1,1 @@
-https://kenster90.github.io/webdev/Webdev/index.html
+https://kenster90.github.io/webdev/index.html
