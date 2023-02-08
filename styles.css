@@ -6,7 +6,7 @@
 }
 
 .navbar{
-    background: #3b3a3a;
+    background: #363636;
     height: 80px;
     display: flex;
     justify-content: center;
@@ -93,7 +93,7 @@
 }
 
 .button:hover {
-    background:#4837ff;
+    background:#883939;
     transition: all 0.3s ease;
 }
 
