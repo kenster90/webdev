@@ -3,168 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Machine</title>
+    <title>Bomb and Coin Grid Game</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f5;
-            overflow: hidden;
+            background-color: #f4f4f9;
         }
-        .slot-machine {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            width: 90%;
-            max-width: 600px;
+        .game-container {
+            text-align: center;
         }
-        .reel {
-            flex: 1;
-            height: 0;
-            padding-bottom: 20%; /* Aspect ratio for scaling */
-            border: 2px solid #333;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-template-rows: repeat(5, 60px);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 6vw; /* Adjusted for better scaling */
-            margin: 0 5px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-sizing: border-box;
-            text-align: center;
-            line-height: 1; /* Ensures vertical centering */
-        }
-        .reel span {
-            display: inline-block;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            0% { transform: rotateX(0deg); }
-            25% { transform: rotateX(90deg); }
-            50% { transform: rotateX(180deg); }
-            75% { transform: rotateX(270deg); }
-            100% { transform: rotateX(360deg); }
-        }
-        button {
-            padding: 1vw 3vw;
-            font-size: 1.5vw;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
+            background-color: #ddd;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            box-shadow: 0 4px #2e7d32;
+            font-size: 20px;
         }
-        button:active {
-            background-color: #388E3C;
-            box-shadow: 0 2px #2e7d32;
-            transform: translateY(2px);
+        .cell.revealed {
+            background-color: #fff;
+            cursor: not-allowed;
         }
-        button:hover {
-            background-color: #45a049;
+        .cell.bomb {
+            background-color: #f44336;
+            color: white;
         }
-        .message {
-            margin-top: 15px;
-            font-size: 1.2vw;
+        .cell.coin {
+            background-color: #ffeb3b;
         }
-        @media (max-width: 600px) {
-            .reel {
-                font-size: 10vw;
-            }
-            button {
-                font-size: 4vw;
-                padding: 2vw 5vw;
-            }
-            .message {
-                font-size: 3vw;
-            }
+        .controls {
+            margin-top: 20px;
+        }
+        .controls input {
+            margin: 0 10px;
+        }
+        .coin-info {
+            margin-top: 10px;
+        }
+        .coin-info span {
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1 style="font-size: 3vw;">Slot Machine Game</h1>
-    <div style="font-size: 2vw;">Coins: <span id="coins">100</span></div>
-    <div class="slot-machine">
-        <div class="reel" id="reel1"><span>-</span></div>
-        <div class="reel" id="reel2"><span>-</span></div>
-        <div class="reel" id="reel3"><span>-</span></div>
+
+<div class="game-container">
+    <h1>Bomb and Coin Grid Game</h1>
+    <p>Click on the cells to uncover them! Avoid the bombs!</p>
+
+    <div class="controls">
+        <label for="bet">Bet Coins (Your Balance: <span id="coin-balance">100</span>):</label>
+        <input type="number" id="bet" value="10" min="1" max="100" />
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="claimCoins()">Claim Coins</button>
     </div>
-    <button id="spinButton" onclick="spin()">Spin</button>
-    <div class="message" id="message"></div>
 
-    <script>
-        let coins = 100;
-        const symbols = ['🍒', '🍋', '🔔', '⭐', '💎'];
-        let spinning = false; // Flag to prevent multiple spins
+    <div class="grid" id="grid"></div>
 
-        function getRandomSymbol() {
-            return symbols[Math.floor(Math.random() * symbols.length)];
+    <h2>Multiplier: <span id="multiplier">1</span></h2>
+    <h2>Game Status: <span id="status">In Progress</span></h2>
+    <div class="coin-info">
+        <h3>Your Bet: <span id="current-bet">0</span> coins</h3>
+    </div>
+</div>
+
+<script>
+    let grid;
+    let multiplier = 1;
+    let currentCoins = 100;
+    let betAmount = 10;
+    let bombs = 5;
+    let gameOver = false;
+
+    function generateGrid() {
+        const gridElement = document.getElementById('grid');
+        gridElement.innerHTML = '';
+        grid = [];
+        for (let i = 0; i < 25; i++) {
+            grid.push({ revealed: false, type: 'coin' });
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.setAttribute('data-index', i);
+            cell.addEventListener('click', () => uncoverCell(i));
+            gridElement.appendChild(cell);
+        }
+    }
+
+    function startGame() {
+        if (betAmount > currentCoins) {
+            alert('You don\'t have enough coins to bet!');
+            return;
         }
 
-        function spin() {
-            if (spinning) return; // Prevent further clicks if spinning
+        currentCoins -= betAmount;
+        document.getElementById('coin-balance').textContent = currentCoins;
+        document.getElementById('current-bet').textContent = betAmount;
+        multiplier = 1;
+        document.getElementById('multiplier').textContent = multiplier;
+        document.getElementById('status').textContent = 'In Progress';
+        gameOver = false;
+        generateGrid();
+        placeBombs();
+    }
 
-            if (coins <= 0) {
-                document.getElementById('message').textContent = 'Out of coins! Refresh to play again.';
-                return;
+    function placeBombs() {
+        let bombCount = 0;
+        while (bombCount < bombs) {
+            const index = Math.floor(Math.random() * 25);
+            if (grid[index].type === 'coin') {
+                grid[index].type = 'bomb';
+                bombCount++;
             }
-            
-            spinning = true; // Set spinning flag
-            document.getElementById('spinButton').disabled = true; // Disable button
-            
-            coins -= 10;
-            document.getElementById('coins').textContent = coins;
-            
-            const reel1 = document.getElementById('reel1');
-            const reel2 = document.getElementById('reel2');
-            const reel3 = document.getElementById('reel3');
-
-            // Add animation class to simulate spinning
-            reel1.innerHTML = '<span></span>';
-            reel2.innerHTML = '<span></span>';
-            reel3.innerHTML = '<span></span>';
-            
-            let spinInterval1 = setInterval(() => {
-                reel1.querySelector('span').textContent = getRandomSymbol();
-            }, 100);
-            let spinInterval2 = setInterval(() => {
-                reel2.querySelector('span').textContent = getRandomSymbol();
-            }, 100);
-            let spinInterval3 = setInterval(() => {
-                reel3.querySelector('span').textContent = getRandomSymbol();
-            }, 100);
-            
-            setTimeout(() => {
-                clearInterval(spinInterval1);
-                clearInterval(spinInterval2);
-                clearInterval(spinInterval3);
-
-                const result1 = getRandomSymbol();
-                const result2 = getRandomSymbol();
-                const result3 = getRandomSymbol();
-
-                reel1.querySelector('span').textContent = result1;
-                reel2.querySelector('span').textContent = result2;
-                reel3.querySelector('span').textContent = result3;
-
-                if (result1 === result2 && result2 === result3) {
-                    coins += 50;
-                    document.getElementById('message').textContent = 'Jackpot! You won 50 coins!';
-                } else {
-                    document.getElementById('message').textContent = 'Try again!';
-                }
-                
-                document.getElementById('coins').textContent = coins;
-                spinning = false; // Reset spinning flag
-                document.getElementById('spinButton').disabled = false; // Enable button
-            }, 3000);
         }
-    </script>
+    }
+
+    function uncoverCell(index) {
+        if (gameOver || grid[index].revealed) return;
+        
+        grid[index].revealed = true;
+        const cell = document.querySelector(`.cell[data-index='${index}']`);
+        if (grid[index].type === 'bomb') {
+            cell.classList.add('bomb');
+            document.getElementById('status').textContent = 'Game Over';
+            currentCoins -= betAmount; // Lost the bet amount on bomb
+            document.getElementById('coin-balance').textContent = currentCoins;
+            gameOver = true;
+        } else {
+            cell.classList.add('coin');
+            multiplier *= 1.2;
+            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        }
+        cell.classList.add('revealed');
+    }
+
+    function claimCoins() {
+        if (gameOver) return;
+        currentCoins += betAmount * multiplier;
+        document.getElementById('coin-balance').textContent = currentCoins;
+        document.getElementById('status').textContent = 'Coins Claimed';
+    }
+
+    // Update bet amount
+    document.getElementById('bet').addEventListener('input', (e) => {
+        betAmount = parseInt(e.target.value);
+    });
+
+    // Start the game when the page loads
+    window.onload = () => {
+        document.getElementById('current-bet').textContent = betAmount;
+        document.getElementById('coin-balance').textContent = currentCoins;
+    };
+</script>
+
 </body>
 </html>
