@@ -91,22 +91,28 @@
         <div class="reel" id="reel2">-</div>
         <div class="reel" id="reel3">-</div>
     </div>
-    <button onclick="spin()">Spin</button>
+    <button id="spinButton" onclick="spin()">Spin</button>
     <div class="message" id="message"></div>
 
     <script>
         let coins = 100;
         const symbols = ['🍒', '🍋', '🔔', '⭐', '💎'];
+        let spinning = false; // Flag to prevent multiple spins
 
         function getRandomSymbol() {
             return symbols[Math.floor(Math.random() * symbols.length)];
         }
 
         function spin() {
+            if (spinning) return; // Prevent further clicks if spinning
+
             if (coins <= 0) {
                 document.getElementById('message').textContent = 'Out of coins! Refresh to play again.';
                 return;
             }
+            
+            spinning = true; // Set spinning flag
+            document.getElementById('spinButton').disabled = true; // Disable button
             
             coins -= 10;
             document.getElementById('coins').textContent = coins;
@@ -151,6 +157,8 @@
                 }
                 
                 document.getElementById('coins').textContent = coins;
+                spinning = false; // Reset spinning flag
+                document.getElementById('spinButton').disabled = false; // Enable button
             }, 3000);
         }
     </script>
