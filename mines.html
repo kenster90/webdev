@@ -26,6 +26,7 @@
             justify-content: center;
             cursor: pointer;
             font-size: 24px;
+            transition: all 0.2s;
         }
         .cell.revealed {
             background-color: #d4edda;
@@ -35,6 +36,15 @@
         }
         .cell.coin {
             background-color: #ffeeba;
+        }
+        .cell.shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
         }
         button:disabled {
             background-color: #ddd;
@@ -75,7 +85,7 @@
     let betAmount = 10;
     let bombs = 5;
     let gameOver = false;
-    let gameStarted = false;  // Track if the game has started
+    let gameStarted = false;
 
     function generateGrid() {
         const gridElement = document.getElementById('grid');
@@ -92,35 +102,29 @@
     }
 
     function startGame() {
-    // Get the chosen number of bombs and bet amount
-    bombs = parseInt(document.getElementById('bombs').value);
-    betAmount = parseInt(document.getElementById('bet').value);
+        bombs = parseInt(document.getElementById('bombs').value);
+        betAmount = parseInt(document.getElementById('bet').value);
 
-    if (betAmount > currentCoins) {
-        alert('You don\'t have enough coins to bet!');
-        return;
+        if (betAmount > currentCoins) {
+            alert('You don\'t have enough coins to bet!');
+            return;
+        }
+
+        currentCoins -= betAmount;
+        document.getElementById('coin-balance').textContent = currentCoins;
+        document.getElementById('current-bet').textContent = betAmount;
+        multiplier = 1 + (bombs / 25) * 2;
+        document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        document.getElementById('status').textContent = 'In Progress';
+        gameOver = false;
+        gameStarted = false;
+        document.getElementById('claim-button').disabled = true;
+        document.getElementById('start-button').disabled = true;
+        document.getElementById('bet').disabled = true;
+        document.getElementById('bombs').disabled = true;
+        generateGrid();
+        placeBombs();
     }
-
-    currentCoins -= betAmount;
-    document.getElementById('coin-balance').textContent = currentCoins;
-    document.getElementById('current-bet').textContent = betAmount;
-
-    // Calculate initial multiplier based on number of bombs
-    // More bombs = higher multiplier, fewer bombs = lower multiplier
-    multiplier = 1 + (bombs / 25) * 2; // Adjust the multiplier scaling factor as needed
-    document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-
-    document.getElementById('status').textContent = 'In Progress';
-    gameOver = false;
-    gameStarted = false;
-    document.getElementById('claim-button').disabled = true;
-    document.getElementById('start-button').disabled = true;
-    document.getElementById('bet').disabled = true;
-    document.getElementById('bombs').disabled = true;
-    generateGrid();
-    placeBombs();
-}
-
 
     function placeBombs() {
         let bombCount = 0;
@@ -136,48 +140,53 @@
     function uncoverCell(index) {
         if (gameOver || grid[index].revealed) return;
         
-        grid[index].revealed = true;
         const cell = document.querySelector(`.cell[data-index='${index}']`);
+        cell.classList.add('shake'); // Add shaking animation
         
-        // Activate the claim button and apply multiplier only after the first move
-        if (!gameStarted) {
-            gameStarted = true;
-            document.getElementById('claim-button').disabled = false;  // Enable claiming after first move
-        }
+        setTimeout(() => {
+            grid[index].revealed = true;
+            cell.classList.remove('shake');
 
-        if (grid[index].type === 'bomb') {
-            cell.classList.add('bomb');
-            document.getElementById('status').textContent = 'Game Over';
-            gameOver = true;
-            document.getElementById('claim-button').disabled = true;  // Disable claim button if game is over
-            document.getElementById('start-button').disabled = false;  // Enable start button for a new game
-            document.getElementById('bet').disabled = false;  // Enable bet input after game over
-            document.getElementById('bombs').disabled = false;  // Enable bombs input after game over
-        } else {
-            cell.classList.add('coin');
-            multiplier *= 1.2;
-            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-        }
-        cell.classList.add('revealed');
+            // Activate claim button and apply multiplier after the first move
+            if (!gameStarted) {
+                gameStarted = true;
+                document.getElementById('claim-button').disabled = false;
+            }
+
+            if (grid[index].type === 'bomb') {
+                cell.classList.add('bomb');
+                cell.textContent = '💣'; // Add bomb emoji
+                document.getElementById('status').textContent = 'Game Over';
+                gameOver = true;
+                document.getElementById('claim-button').disabled = true;
+                document.getElementById('start-button').disabled = false;
+                document.getElementById('bet').disabled = false;
+                document.getElementById('bombs').disabled = false;
+            } else {
+                cell.classList.add('coin');
+                cell.textContent = '🪙'; // Add coin emoji
+                multiplier *= 1.2;
+                document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+            }
+            cell.classList.add('revealed');
+        }, 500); // Delay before revealing
     }
 
     function claimCoins() {
-        if (!gameStarted || gameOver) return;  // Prevent claiming if game hasn't started or is over
+        if (!gameStarted || gameOver) return;
         currentCoins += betAmount * multiplier;
         document.getElementById('coin-balance').textContent = currentCoins;
         document.getElementById('status').textContent = 'Coins Claimed';
-        document.getElementById('claim-button').disabled = true;  // Disable button after claiming
-        document.getElementById('start-button').disabled = false;  // Enable start button for a new game
-        document.getElementById('bet').disabled = false;  // Enable bet input after claiming
-        document.getElementById('bombs').disabled = false;  // Enable bombs input after claiming
+        document.getElementById('claim-button').disabled = true;
+        document.getElementById('start-button').disabled = false;
+        document.getElementById('bet').disabled = false;
+        document.getElementById('bombs').disabled = false;
     }
 
-    // Update bet amount
     document.getElementById('bet').addEventListener('input', (e) => {
         betAmount = parseInt(e.target.value);
     });
 
-    // Start the game when the page loads
     window.onload = () => {
         document.getElementById('current-bet').textContent = betAmount;
         document.getElementById('coin-balance').textContent = currentCoins;
