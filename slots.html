@@ -12,6 +12,7 @@
             justify-content: center;
             height: 100vh;
             font-family: Arial, sans-serif;
+            background-color: #f0f0f5;
         }
         .slot-machine {
             display: flex;
@@ -27,10 +28,33 @@
             justify-content: center;
             font-size: 24px;
             margin: 0 5px;
+            background-color: #fff;
+            border-radius: 5px;
+            animation: spin 1s ease-in-out;
+        }
+        @keyframes spin {
+            0% { transform: rotateX(0deg); }
+            50% { transform: rotateX(180deg); }
+            100% { transform: rotateX(360deg); }
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px #2e7d32;
+        }
+        button:active {
+            background-color: #388E3C;
+            box-shadow: 0 2px #2e7d32;
+            transform: translateY(2px);
+        }
+        button:hover {
+            background-color: #45a049;
         }
         .message {
             margin-top: 15px;
@@ -68,23 +92,33 @@
             const reel1 = document.getElementById('reel1');
             const reel2 = document.getElementById('reel2');
             const reel3 = document.getElementById('reel3');
+
+            reel1.style.animation = 'spin 1s ease-in-out';
+            reel2.style.animation = 'spin 1s ease-in-out';
+            reel3.style.animation = 'spin 1s ease-in-out';
             
-            const result1 = getRandomSymbol();
-            const result2 = getRandomSymbol();
-            const result3 = getRandomSymbol();
-            
-            reel1.textContent = result1;
-            reel2.textContent = result2;
-            reel3.textContent = result3;
-            
-            if (result1 === result2 && result2 === result3) {
-                coins += 50;
-                document.getElementById('message').textContent = 'Jackpot! You won 50 coins!';
-            } else {
-                document.getElementById('message').textContent = 'Try again!';
-            }
-            
-            document.getElementById('coins').textContent = coins;
+            setTimeout(() => {
+                const result1 = getRandomSymbol();
+                const result2 = getRandomSymbol();
+                const result3 = getRandomSymbol();
+                
+                reel1.textContent = result1;
+                reel2.textContent = result2;
+                reel3.textContent = result3;
+
+                reel1.style.animation = '';
+                reel2.style.animation = '';
+                reel3.style.animation = '';
+                
+                if (result1 === result2 && result2 === result3) {
+                    coins += 50;
+                    document.getElementById('message').textContent = 'Jackpot! You won 50 coins!';
+                } else {
+                    document.getElementById('message').textContent = 'Try again!';
+                }
+                
+                document.getElementById('coins').textContent = coins;
+            }, 1000);
         }
     </script>
 </body>
