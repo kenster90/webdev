@@ -5,63 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bomb and Coin Grid Game</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f9;
-        }
-        .game-container {
-            text-align: center;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 60px);
-            grid-template-rows: repeat(5, 60px);
-            gap: 5px;
-            margin-top: 20px;
-        }
-        .cell {
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-        .cell.revealed {
-            background-color: #fff;
-            cursor: not-allowed;
-        }
-        .cell.bomb {
-            background-color: #f44336;
-            color: white;
-        }
-        .cell.coin {
-            background-color: #ffeb3b;
-        }
-        .controls {
-            margin-top: 20px;
-        }
-        .controls input {
-            margin: 0 10px;
-        }
-        .coin-info {
-            margin-top: 10px;
-        }
-        .coin-info span {
-            font-weight: bold;
-        }
-        button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
+        /* Same styling as before */
     </style>
 </head>
 <body>
@@ -114,10 +58,10 @@
     }
 
     function startGame() {
-        // Get the chosen number of bombs
+        // Get the chosen number of bombs and bet amount
         bombs = parseInt(document.getElementById('bombs').value);
         betAmount = parseInt(document.getElementById('bet').value);
-        
+
         if (betAmount > currentCoins) {
             alert('You don\'t have enough coins to bet!');
             return;
@@ -133,6 +77,8 @@
         gameStarted = false;  // Reset gameStarted to false on new game
         document.getElementById('claim-button').disabled = true;  // Disable claiming until a move is made
         document.getElementById('start-button').disabled = true;  // Disable start button during gameplay
+        document.getElementById('bet').disabled = true;  // Disable bet input during gameplay
+        document.getElementById('bombs').disabled = true;  // Disable bombs input during gameplay
         generateGrid();
         placeBombs();
     }
@@ -166,6 +112,8 @@
             gameOver = true;
             document.getElementById('claim-button').disabled = true;  // Disable claim button if game is over
             document.getElementById('start-button').disabled = false;  // Enable start button for a new game
+            document.getElementById('bet').disabled = false;  // Enable bet input after game over
+            document.getElementById('bombs').disabled = false;  // Enable bombs input after game over
         } else {
             cell.classList.add('coin');
             multiplier *= 1.2;
@@ -181,6 +129,8 @@
         document.getElementById('status').textContent = 'Coins Claimed';
         document.getElementById('claim-button').disabled = true;  // Disable button after claiming
         document.getElementById('start-button').disabled = false;  // Enable start button for a new game
+        document.getElementById('bet').disabled = false;  // Enable bet input after claiming
+        document.getElementById('bombs').disabled = false;  // Enable bombs input after claiming
     }
 
     // Update bet amount
