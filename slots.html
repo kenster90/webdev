@@ -19,7 +19,7 @@
         .slot-machine {
             display: flex;
             justify-content: center;
-            margin-bottom: 0px;
+            margin-bottom: 20px;
             width: 90%;
             max-width: 600px;
         }
@@ -38,6 +38,10 @@
             box-sizing: border-box;
             text-align: center;
             line-height: 1; /* Ensures vertical centering */
+        }
+        .reel span {
+            display: inline-block;
+            vertical-align: middle;
         }
         @keyframes spin {
             0% { transform: rotateX(0deg); }
@@ -87,9 +91,9 @@
     <h1 style="font-size: 3vw;">Slot Machine Game</h1>
     <div style="font-size: 2vw;">Coins: <span id="coins">100</span></div>
     <div class="slot-machine">
-        <div class="reel" id="reel1">-</div>
-        <div class="reel" id="reel2">-</div>
-        <div class="reel" id="reel3">-</div>
+        <div class="reel" id="reel1"><span>-</span></div>
+        <div class="reel" id="reel2"><span>-</span></div>
+        <div class="reel" id="reel3"><span>-</span></div>
     </div>
     <button id="spinButton" onclick="spin()">Spin</button>
     <div class="message" id="message"></div>
@@ -122,18 +126,18 @@
             const reel3 = document.getElementById('reel3');
 
             // Add animation class to simulate spinning
-            reel1.textContent = '';
-            reel2.textContent = '';
-            reel3.textContent = '';
+            reel1.innerHTML = '<span></span>';
+            reel2.innerHTML = '<span></span>';
+            reel3.innerHTML = '<span></span>';
             
             let spinInterval1 = setInterval(() => {
-                reel1.textContent = getRandomSymbol();
+                reel1.querySelector('span').textContent = getRandomSymbol();
             }, 100);
             let spinInterval2 = setInterval(() => {
-                reel2.textContent = getRandomSymbol();
+                reel2.querySelector('span').textContent = getRandomSymbol();
             }, 100);
             let spinInterval3 = setInterval(() => {
-                reel3.textContent = getRandomSymbol();
+                reel3.querySelector('span').textContent = getRandomSymbol();
             }, 100);
             
             setTimeout(() => {
@@ -145,9 +149,9 @@
                 const result2 = getRandomSymbol();
                 const result3 = getRandomSymbol();
 
-                reel1.textContent = result1;
-                reel2.textContent = result2;
-                reel3.textContent = result3;
+                reel1.querySelector('span').textContent = result1;
+                reel2.querySelector('span').textContent = result2;
+                reel3.querySelector('span').textContent = result3;
 
                 if (result1 === result2 && result2 === result3) {
                     coins += 50;
