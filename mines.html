@@ -92,30 +92,35 @@
     }
 
     function startGame() {
-        // Get the chosen number of bombs and bet amount
-        bombs = parseInt(document.getElementById('bombs').value);
-        betAmount = parseInt(document.getElementById('bet').value);
+    // Get the chosen number of bombs and bet amount
+    bombs = parseInt(document.getElementById('bombs').value);
+    betAmount = parseInt(document.getElementById('bet').value);
 
-        if (betAmount > currentCoins) {
-            alert('You don\'t have enough coins to bet!');
-            return;
-        }
-
-        currentCoins -= betAmount;
-        document.getElementById('coin-balance').textContent = currentCoins;
-        document.getElementById('current-bet').textContent = betAmount;
-        multiplier = 1;  // Start with a base multiplier of 1
-        document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-        document.getElementById('status').textContent = 'In Progress';
-        gameOver = false;
-        gameStarted = false;  // Reset gameStarted to false on new game
-        document.getElementById('claim-button').disabled = true;  // Disable claiming until a move is made
-        document.getElementById('start-button').disabled = true;  // Disable start button during gameplay
-        document.getElementById('bet').disabled = true;  // Disable bet input during gameplay
-        document.getElementById('bombs').disabled = true;  // Disable bombs input during gameplay
-        generateGrid();
-        placeBombs();
+    if (betAmount > currentCoins) {
+        alert('You don\'t have enough coins to bet!');
+        return;
     }
+
+    currentCoins -= betAmount;
+    document.getElementById('coin-balance').textContent = currentCoins;
+    document.getElementById('current-bet').textContent = betAmount;
+
+    // Calculate initial multiplier based on number of bombs
+    // More bombs = higher multiplier, fewer bombs = lower multiplier
+    multiplier = 1 + (bombs / 25) * 2; // Adjust the multiplier scaling factor as needed
+    document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+
+    document.getElementById('status').textContent = 'In Progress';
+    gameOver = false;
+    gameStarted = false;
+    document.getElementById('claim-button').disabled = true;
+    document.getElementById('start-button').disabled = true;
+    document.getElementById('bet').disabled = true;
+    document.getElementById('bombs').disabled = true;
+    generateGrid();
+    placeBombs();
+}
+
 
     function placeBombs() {
         let bombCount = 0;
