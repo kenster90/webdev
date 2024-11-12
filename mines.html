@@ -5,7 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bomb and Coin Grid Game</title>
     <style>
-        /* Same styling as before */
+        .game-container {
+            text-align: center;
+            margin: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            max-width: 320px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .cell.revealed {
+            background-color: #d4edda;
+        }
+        .cell.bomb {
+            background-color: #f8d7da;
+        }
+        .cell.coin {
+            background-color: #ffeeba;
+        }
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
