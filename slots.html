@@ -11,22 +11,27 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f5;
+            overflow: hidden;
         }
         .slot-machine {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            width: 90%;
+            max-width: 600px;
         }
         .reel {
-            width: 50px;
-            height: 50px;
+            flex: 1;
+            height: 0;
+            padding-bottom: 20%; /* Aspect ratio for scaling */
             border: 2px solid #333;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 2vw;
             margin: 0 5px;
             background-color: #fff;
             border-radius: 5px;
@@ -39,8 +44,8 @@
             100% { transform: rotateX(360deg); }
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 1vw 3vw;
+            font-size: 1.5vw;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -59,12 +64,25 @@
         }
         .message {
             margin-top: 15px;
+            font-size: 1.2vw;
+        }
+        @media (max-width: 600px) {
+            .reel {
+                font-size: 4vw;
+            }
+            button {
+                font-size: 4vw;
+                padding: 2vw 5vw;
+            }
+            .message {
+                font-size: 3vw;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Slot Machine Game</h1>
-    <div>Coins: <span id="coins">100</span></div>
+    <h1 style="font-size: 3vw;">Slot Machine Game</h1>
+    <div style="font-size: 2vw;">Coins: <span id="coins">100</span></div>
     <div class="slot-machine">
         <div class="reel" id="reel1">-</div>
         <div class="reel" id="reel2">-</div>
