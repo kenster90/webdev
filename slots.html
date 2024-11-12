@@ -37,9 +37,7 @@
             border-radius: 5px;
             box-sizing: border-box;
             text-align: center;
-        }
-        .reel::before {
-            content: '\00a0'; /* Non-breaking space to ensure centering */
+            line-height: 1; /* Ensures vertical centering */
         }
         @keyframes spin {
             0% { transform: rotateX(0deg); }
