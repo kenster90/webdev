@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bomb and Coin Grid Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .game-container {
+            text-align: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-template-rows: repeat(5, 60px);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .cell.revealed {
+            background-color: #fff;
+            cursor: not-allowed;
+        }
+        .cell.bomb {
+            background-color: #f44336;
+            color: white;
+        }
+        .cell.coin {
+            background-color: #ffeb3b;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .controls input {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Bomb and Coin Grid Game</h1>
+    <p>Click on the cells to uncover them! Avoid the bombs!</p>
+
+    <div class="controls">
+        <label for="bombs">Choose Number of Bombs:</label>
+        <input type="number" id="bombs" value="5" min="1" max="25">
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <h2>Multiplier: <span id="multiplier">1</span></h2>
+    <h2>Game Status: <span id="status">In Progress</span></h2>
+</div>
+
+<script>
+    let grid;
+    let multiplier = 1;
+    let bombs = 5;
+    let gameOver = false;
+
+    function generateGrid() {
+        const gridElement = document.getElementById('grid');
+        gridElement.innerHTML = '';
+        grid = [];
+        for (let i = 0; i < 25; i++) {
+            grid.push({ revealed: false, type: 'coin' });
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.setAttribute('data-index', i);
+            cell.addEventListener('click', () => uncoverCell(i));
+            gridElement.appendChild(cell);
+        }
+    }
+
+    function startGame() {
+        bombs = parseInt(document.getElementById('bombs').value);
+        multiplier = 1;
+        document.getElementById('multiplier').textContent = multiplier;
+        document.getElementById('status').textContent = 'In Progress';
+        gameOver = false;
+        generateGrid();
+        placeBombs();
+    }
+
+    function placeBombs() {
+        let bombCount = 0;
+        while (bombCount < bombs) {
+            const index = Math.floor(Math.random() * 25);
+            if (grid[index].type === 'coin') {
+                grid[index].type = 'bomb';
+                bombCount++;
+            }
+        }
+    }
+
+    function uncoverCell(index) {
+        if (gameOver || grid[index].revealed) return;
+        
+        grid[index].revealed = true;
+        const cell = document.querySelector(`.cell[data-index='${index}']`);
+        if (grid[index].type === 'bomb') {
+            cell.classList.add('bomb');
+            document.getElementById('status').textContent = 'Game Over';
+            gameOver = true;
+        } else {
+            cell.classList.add('coin');
+            multiplier *= 1.2;
+            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        }
+        cell.classList.add('revealed');
+    }
+
+    // Start the game when the page loads
+    window.onload = startGame;
+</script>
+
+</body>
+</html>
