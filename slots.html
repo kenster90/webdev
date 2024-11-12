@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .reel {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .message {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Slot Machine Game</h1>
+    <div>Coins: <span id="coins">100</span></div>
+    <div class="slot-machine">
+        <div class="reel" id="reel1">-</div>
+        <div class="reel" id="reel2">-</div>
+        <div class="reel" id="reel3">-</div>
+    </div>
+    <button onclick="spin()">Spin</button>
+    <div class="message" id="message"></div>
+
+    <script>
+        let coins = 100;
+        const symbols = ['🍒', '🍋', '🔔', '⭐', '💎'];
+
+        function getRandomSymbol() {
+            return symbols[Math.floor(Math.random() * symbols.length)];
+        }
+
+        function spin() {
+            if (coins <= 0) {
+                document.getElementById('message').textContent = 'Out of coins! Refresh to play again.';
+                return;
+            }
+            
+            coins -= 10;
+            document.getElementById('coins').textContent = coins;
+            
+            const reel1 = document.getElementById('reel1');
+            const reel2 = document.getElementById('reel2');
+            const reel3 = document.getElementById('reel3');
+            
+            const result1 = getRandomSymbol();
+            const result2 = getRandomSymbol();
+            const result3 = getRandomSymbol();
+            
+            reel1.textContent = result1;
+            reel2.textContent = result2;
+            reel3.textContent = result3;
+            
+            if (result1 === result2 && result2 === result3) {
+                coins += 50;
+                document.getElementById('message').textContent = 'Jackpot! You won 50 coins!';
+            } else {
+                document.getElementById('message').textContent = 'Try again!';
+            }
+            
+            document.getElementById('coins').textContent = coins;
+        }
+    </script>
+</body>
+</html>
