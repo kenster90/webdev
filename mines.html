@@ -93,6 +93,7 @@
     let betAmount = 10;
     let bombs = 5;
     let gameOver = false;
+    let gameStarted = false;  // Track if the game has started
 
     function generateGrid() {
         const gridElement = document.getElementById('grid');
@@ -123,6 +124,7 @@
         document.getElementById('multiplier').textContent = multiplier.toFixed(2);
         document.getElementById('status').textContent = 'In Progress';
         gameOver = false;
+        gameStarted = false;  // Reset gameStarted to false on new game
         document.getElementById('claim-button').disabled = false;
         generateGrid();
         placeBombs();
@@ -144,6 +146,14 @@
         
         grid[index].revealed = true;
         const cell = document.querySelector(`.cell[data-index='${index}']`);
+        
+        // Only apply multiplier after first non-bomb cell is clicked
+        if (!gameStarted) {
+            gameStarted = true;
+            multiplier = 1 + (bombs * 0.05);  // Adjust multiplier based on the bombs count
+            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        }
+
         if (grid[index].type === 'bomb') {
             cell.classList.add('bomb');
             document.getElementById('status').textContent = 'Game Over';
@@ -160,7 +170,7 @@
     }
 
     function claimCoins() {
-        if (gameOver) return;
+        if (!gameStarted || gameOver) return;  // Prevent claiming if game hasn't started or is over
         currentCoins += betAmount * multiplier;
         document.getElementById('coin-balance').textContent = currentCoins;
         document.getElementById('status').textContent = 'Coins Claimed';
