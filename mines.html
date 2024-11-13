@@ -1,124 +1,163 @@
-// client.js
-
-document.addEventListener("DOMContentLoaded", () => {
-    let gridContainer = document.getElementById("grid");
-    let betAmountInput = document.getElementById("betAmount");
-    let bombsInput = document.getElementById("bombs");
-    let startButton = document.getElementById("startGame");
-    let claimButton = document.getElementById("claimCoins");
-    let messageDisplay = document.getElementById("message");
-    let userCoinsDisplay = document.getElementById("userCoins");
-
-    let userCoins = 100;
-    let currentGrid = [];
-    let currentMultiplier = 1;
-    let gameInProgress = false;
-
-    userCoinsDisplay.textContent = `Coins: ${userCoins}`;
-
-    function generateGrid(bombs) {
-        let grid = Array(25).fill("coin");
-        for (let i = 0; i < bombs; i++) {
-            let index;
-            do {
-                index = Math.floor(Math.random() * 25);
-            } while (grid[index] === "bomb");
-            grid[index] = "bomb";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
         }
-        return grid;
-    }
-
-    function calculateMultiplier(bombs) {
-        return 1 + (bombs / 25) * 2;
-    }
-
-    function revealGrid() {
-        gridContainer.innerHTML = "";
-        currentGrid.forEach((cell, index) => {
-            let cellElement = document.createElement("div");
-            cellElement.classList.add("cell");
-            cellElement.textContent = cell === "bomb" ? "💣" : "💰";
-            gridContainer.appendChild(cellElement);
-        });
-    }
-
-    function startGame() {
-        let betAmount = parseInt(betAmountInput.value);
-        let bombs = parseInt(bombsInput.value);
-
-        if (betAmount < 1 || bombs < 1 || bombs >= 25 || !Number.isInteger(bombs)) {
-            messageDisplay.textContent = "Invalid bet amount or number of bombs.";
-            return;
+        #gameGrid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-gap: 5px;
         }
-
-        if (userCoins < betAmount) {
-            messageDisplay.textContent = "Insufficient coins.";
-            return;
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            background-color: #d3d3d3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            border: 1px solid #999;
         }
-
-        userCoins -= betAmount;
-        userCoinsDisplay.textContent = `Coins: ${userCoins}`;
-
-        currentGrid = generateGrid(bombs);
-        currentMultiplier = calculateMultiplier(bombs);
-        gameInProgress = true;
-        claimButton.disabled = true;
-        startButton.disabled = true;
-        bombsInput.disabled = true;
-        betAmountInput.disabled = true;
-
-        gridContainer.innerHTML = "";
-        for (let i = 0; i < 25; i++) {
-            let cellElement = document.createElement("div");
-            cellElement.classList.add("cell");
-            cellElement.addEventListener("click", () => handleCellClick(i));
-            gridContainer.appendChild(cellElement);
+        .grid-cell.revealed {
+            background-color: #f0f0f0;
+            cursor: default;
         }
+        #controls {
+            margin-bottom: 20px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label for="bet">Bet Amount (coins):</label>
+        <input type="number" id="bet" min="1" value="1">
+        <label for="bombs">Number of Bombs:</label>
+        <input type="number" id="bombs" min="1" max="24" value="5">
+        <button id="startGame">Start Game</button>
+        <button id="claimCoins" disabled>Claim Coins</button>
+    </div>
+    <div id="gameGrid"></div>
+    <div id="status">Starting multiplier: 1x</div>
 
-        messageDisplay.textContent = "Game started! Click a square to reveal it.";
-    }
+    <script>
+        let coins = 100;
+        let multiplier = 1;
+        let gameActive = false;
+        let revealedCells = 0;
 
-    function handleCellClick(index) {
-        if (!gameInProgress) return;
+        document.getElementById('startGame').addEventListener('click', startGame);
+        document.getElementById('claimCoins').addEventListener('click', claimCoins);
 
-        let cellElement = gridContainer.children[index];
-        let cellContent = currentGrid[index];
-        
-        if (cellContent === "bomb") {
-            cellElement.textContent = "💣";
-            messageDisplay.textContent = "You hit a bomb! Game over.";
-            gameInProgress = false;
-            revealGrid();
-            startButton.disabled = false;
-            bombsInput.disabled = false;
-            betAmountInput.disabled = false;
-            return;
+        function startGame() {
+            const betAmount = parseInt(document.getElementById('bet').value);
+            const bombs = parseInt(document.getElementById('bombs').value);
+
+            if (betAmount < 1 || bombs < 1 || !Number.isInteger(bombs)) {
+                alert('Please enter valid numbers for bet and bombs.');
+                return;
+            }
+            if (bombs >= 25) {
+                alert('The number of bombs must be less than 25.');
+                return;
+            }
+
+            document.getElementById('startGame').disabled = true;
+            document.getElementById('claimCoins').disabled = true;
+            gameActive = true;
+            revealedCells = 0;
+            multiplier = 1 + (bombs / 25) * 2; // Adjust multiplier based on bombs
+
+            updateStatus(`Game started! Multiplier: ${multiplier.toFixed(2)}x`);
+            generateGrid(bombs);
         }
 
-        cellElement.textContent = "💰";
-        claimButton.disabled = false;
-    }
+        function generateGrid(bombs) {
+            const gameGrid = document.getElementById('gameGrid');
+            gameGrid.innerHTML = '';
+            const cells = Array(25).fill('coin');
+            for (let i = 0; i < bombs; i++) {
+                let index;
+                do {
+                    index = Math.floor(Math.random() * 25);
+                } while (cells[index] === 'bomb');
+                cells[index] = 'bomb';
+            }
 
-    function claimCoins() {
-        if (!gameInProgress) return;
+            cells.forEach((content, index) => {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-cell');
+                cell.dataset.content = content;
+                cell.addEventListener('click', () => revealCell(cell));
+                gameGrid.appendChild(cell);
+            });
+        }
 
-        let betAmount = parseInt(betAmountInput.value);
-        let winnings = betAmount * currentMultiplier;
-        userCoins += winnings;
-        userCoinsDisplay.textContent = `Coins: ${userCoins}`;
-        messageDisplay.textContent = `You claimed ${winnings} coins!`;
+        function revealCell(cell) {
+            if (!gameActive || cell.classList.contains('revealed')) return;
 
-        gameInProgress = false;
-        revealGrid();
-        startButton.disabled = false;
-        bombsInput.disabled = false;
-        betAmountInput.disabled = false;
-    }
+            cell.classList.add('revealed');
+            cell.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                cell.style.animation = '';
+                if (cell.dataset.content === 'bomb') {
+                    cell.textContent = '💣';
+                    gameOver(false);
+                } else {
+                    cell.textContent = '💰';
+                    revealedCells++;
+                    if (revealedCells === 1) {
+                        document.getElementById('claimCoins').disabled = false;
+                    }
+                    multiplier *= 1.1; // Increase multiplier for each coin found
+                    updateStatus(`Multiplier: ${multiplier.toFixed(2)}x`);
+                }
+            }, 500);
+        }
 
-    startButton.addEventListener("click", startGame);
-    claimButton.addEventListener("click", claimCoins);
+        function gameOver(won) {
+            gameActive = false;
+            document.getElementById('startGame').disabled = false;
+            if (won) {
+                alert('You won! Claim your coins!');
+            } else {
+                updateStatus('Game over! You hit a bomb.');
+                document.getElementById('claimCoins').disabled = true;
+            }
+        }
 
-    claimButton.disabled = true;
-});
+        function claimCoins() {
+            if (!gameActive || revealedCells === 0) return;
 
-// Add necessary CSS for animations or styles in a separate file or <style> block
+            const betAmount = parseInt(document.getElementById('bet').value);
+            const winnings = betAmount * multiplier;
+            coins += winnings;
+            updateStatus(`You claimed ${winnings.toFixed(2)} coins! Total coins: ${coins.toFixed(2)}`);
+            gameActive = false;
+            document.getElementById('startGame').disabled = false;
+            document.getElementById('claimCoins').disabled = true;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+    </script>
+</body>
+</html>
