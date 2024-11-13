@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bomb and Coin Grid Game</title>
+    <title>Mines</title>
     <style>
         /* CSS styles */
         .game-container {
@@ -56,7 +56,7 @@
 <body>
 
 <div class="game-container">
-    <h1>Bomb and Coin Grid Game</h1>
+    <h1>Mines</h1>
     <p>Click on the cells to uncover them! Avoid the bombs!</p>
 
     <div class="controls">
@@ -174,7 +174,7 @@
             } else {
                 cell.classList.add('coin');
                 cell.textContent = '🪙';
-                multiplier *= 1.2;
+                multiplier *= 1.1;
                 document.getElementById('multiplier').textContent = multiplier.toFixed(2);
             }
             cell.classList.add('revealed');
