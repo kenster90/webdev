@@ -1,163 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        #gameGrid {
-            display: grid;
-            grid-template-columns: repeat(5, 60px);
-            grid-gap: 5px;
-        }
-        .grid-cell {
-            width: 60px;
-            height: 60px;
-            background-color: #d3d3d3;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-            border: 1px solid #999;
-        }
-        .grid-cell.revealed {
-            background-color: #f0f0f0;
-            cursor: default;
-        }
-        #controls {
-            margin-bottom: 20px;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #status {
-            margin-top: 15px;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-    <div id="controls">
-        <label for="bet">Bet Amount (coins):</label>
-        <input type="number" id="bet" min="1" value="1">
-        <label for="bombs">Number of Bombs:</label>
-        <input type="number" id="bombs" min="1" max="24" value="5">
-        <button id="startGame">Start Game</button>
-        <button id="claimCoins" disabled>Claim Coins</button>
-    </div>
-    <div id="gameGrid"></div>
-    <div id="status">Starting multiplier: 1x</div>
+// client.js
 
-    <script>
-        let coins = 100;
-        let multiplier = 1;
-        let gameActive = false;
-        let revealedCells = 0;
+const baseUrl = 'https://replit.com/@kenster90/Website?v=1';
+let currentGrid = [];
+let currentBet = 0;
+let currentMultiplier = 1;
+let gameStarted = false;
 
-        document.getElementById('startGame').addEventListener('click', startGame);
-        document.getElementById('claimCoins').addEventListener('click', claimCoins);
+// Initialize the game UI
+document.addEventListener('DOMContentLoaded', () => {
+    const startGameButton = document.getElementById('start-game');
+    const betInput = document.getElementById('bet-input');
+    const bombsInput = document.getElementById('bombs-input');
+    const claimCoinsButton = document.getElementById('claim-coins');
+    const gridContainer = document.getElementById('grid-container');
 
-        function startGame() {
-            const betAmount = parseInt(document.getElementById('bet').value);
-            const bombs = parseInt(document.getElementById('bombs').value);
+    // Disable claim button initially
+    claimCoinsButton.disabled = true;
 
-            if (betAmount < 1 || bombs < 1 || !Number.isInteger(bombs)) {
-                alert('Please enter valid numbers for bet and bombs.');
-                return;
-            }
-            if (bombs >= 25) {
-                alert('The number of bombs must be less than 25.');
-                return;
-            }
+    // Start game button click event
+    startGameButton.addEventListener('click', async () => {
+        const betAmount = parseInt(betInput.value, 10);
+        const bombs = parseInt(bombsInput.value, 10);
 
-            document.getElementById('startGame').disabled = true;
-            document.getElementById('claimCoins').disabled = true;
-            gameActive = true;
-            revealedCells = 0;
-            multiplier = 1 + (bombs / 25) * 2; // Adjust multiplier based on bombs
-
-            updateStatus(`Game started! Multiplier: ${multiplier.toFixed(2)}x`);
-            generateGrid(bombs);
+        if (isNaN(betAmount) || betAmount < 1 || isNaN(bombs) || bombs < 1 || bombs >= 25) {
+            alert('Invalid bet amount or number of bombs. Ensure both are valid positive numbers.');
+            return;
         }
 
-        function generateGrid(bombs) {
-            const gameGrid = document.getElementById('gameGrid');
-            gameGrid.innerHTML = '';
-            const cells = Array(25).fill('coin');
-            for (let i = 0; i < bombs; i++) {
-                let index;
-                do {
-                    index = Math.floor(Math.random() * 25);
-                } while (cells[index] === 'bomb');
-                cells[index] = 'bomb';
-            }
-
-            cells.forEach((content, index) => {
-                const cell = document.createElement('div');
-                cell.classList.add('grid-cell');
-                cell.dataset.content = content;
-                cell.addEventListener('click', () => revealCell(cell));
-                gameGrid.appendChild(cell);
+        try {
+            const response = await fetch(`${baseUrl}/start-game`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ betAmount, bombs })
             });
-        }
+            const data = await response.json();
 
-        function revealCell(cell) {
-            if (!gameActive || cell.classList.contains('revealed')) return;
+            if (data.success) {
+                currentGrid = data.grid;
+                currentBet = betAmount;
+                currentMultiplier = data.multiplier;
+                gameStarted = true;
 
-            cell.classList.add('revealed');
-            cell.style.animation = 'shake 0.5s';
-            setTimeout(() => {
-                cell.style.animation = '';
-                if (cell.dataset.content === 'bomb') {
-                    cell.textContent = '💣';
-                    gameOver(false);
-                } else {
-                    cell.textContent = '💰';
-                    revealedCells++;
-                    if (revealedCells === 1) {
-                        document.getElementById('claimCoins').disabled = false;
-                    }
-                    multiplier *= 1.1; // Increase multiplier for each coin found
-                    updateStatus(`Multiplier: ${multiplier.toFixed(2)}x`);
+                // Reset and render the grid
+                gridContainer.innerHTML = '';
+                for (let i = 0; i < 25; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.index = i;
+                    cell.addEventListener('click', () => revealCell(i));
+                    gridContainer.appendChild(cell);
                 }
-            }, 500);
-        }
 
-        function gameOver(won) {
-            gameActive = false;
-            document.getElementById('startGame').disabled = false;
-            if (won) {
-                alert('You won! Claim your coins!');
+                claimCoinsButton.disabled = false;
+                startGameButton.disabled = true;
+                alert(`Game started! Multiplier: x${currentMultiplier.toFixed(2)}`);
             } else {
-                updateStatus('Game over! You hit a bomb.');
-                document.getElementById('claimCoins').disabled = true;
+                alert(data.message);
             }
+        } catch (error) {
+            console.error('Error starting game:', error);
         }
+    });
 
-        function claimCoins() {
-            if (!gameActive || revealedCells === 0) return;
+    // Claim coins button click event
+    claimCoinsButton.addEventListener('click', async () => {
+        if (!gameStarted) return;
 
-            const betAmount = parseInt(document.getElementById('bet').value);
-            const winnings = betAmount * multiplier;
-            coins += winnings;
-            updateStatus(`You claimed ${winnings.toFixed(2)} coins! Total coins: ${coins.toFixed(2)}`);
-            gameActive = false;
-            document.getElementById('startGame').disabled = false;
-            document.getElementById('claimCoins').disabled = true;
+        try {
+            const response = await fetch(`${baseUrl}/claim-coins`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ betAmount: currentBet, multiplier: currentMultiplier })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`Coins claimed! You won ${data.winnings} coins. Total: ${data.totalCoins} coins.`);
+                resetGame();
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error claiming coins:', error);
         }
+    });
 
-        function updateStatus(message) {
-            document.getElementById('status').textContent = message;
+    // Reveal cell function
+    async function revealCell(index) {
+        if (!gameStarted || !currentGrid.length) return;
+
+        try {
+            const response = await fetch(`${baseUrl}/reveal-cell`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cellIndex: index, grid: currentGrid })
+            });
+            const data = await response.json();
+
+            const cell = document.querySelector(`.cell[data-index='${index}']`);
+            cell.classList.add('revealed');
+
+            if (data.success) {
+                cell.textContent = '💰';
+            } else {
+                cell.textContent = '💣';
+                alert('Bomb revealed! Game over.');
+                resetGame();
+            }
+        } catch (error) {
+            console.error('Error revealing cell:', error);
         }
-    </script>
-</body>
-</html>
+    }
+
+    // Reset game function
+    function resetGame() {
+        currentGrid = [];
+        currentBet = 0;
+        currentMultiplier = 1;
+        gameStarted = false;
+        claimCoinsButton.disabled = true;
+        startGameButton.disabled = false;
+        gridContainer.innerHTML = '';
+    }
+});
+
+// Additional CSS for shaking animation can be added in a separate stylesheet or within a <style> tag.
