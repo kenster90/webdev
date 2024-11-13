@@ -3,204 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bomb and Coin Grid Game</title>
+    <title>Grid Game</title>
     <style>
-        /* CSS styles */
-        .game-container {
-            text-align: center;
-            margin: 20px;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
         }
-        .grid {
+        #gameGrid {
             display: grid;
             grid-template-columns: repeat(5, 60px);
             grid-gap: 5px;
-            margin: 20px auto;
-            max-width: 320px;
         }
-        .cell {
+        .grid-cell {
             width: 60px;
             height: 60px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
+            background-color: #d3d3d3;
             display: flex;
-            align-items: center;
             justify-content: center;
-            cursor: pointer;
+            align-items: center;
             font-size: 24px;
-            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid #999;
         }
-        .cell.revealed {
-            background-color: #d4edda;
+        .grid-cell.revealed {
+            background-color: #f0f0f0;
+            cursor: default;
         }
-        .cell.bomb {
-            background-color: #f8d7da;
-        }
-        .cell.coin {
-            background-color: #ffeeba;
-        }
-        .cell.shake {
-            animation: shake 0.5s;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
+        #controls {
+            margin-bottom: 20px;
         }
         button:disabled {
-            background-color: #ddd;
+            background-color: #ccc;
             cursor: not-allowed;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-
-<div class="game-container">
-    <h1>Bomb and Coin Grid Game</h1>
-    <p>Click on the cells to uncover them! Avoid the bombs!</p>
-
-    <div class="controls">
-        <label for="bet">Bet Coins (Your Balance: <span id="coin-balance">100</span>):</label>
-        <input type="number" id="bet" value="10" min="1" max="100" step="1" />
-        <br />
-        <label for="bombs">Choose Number of Bombs (1-25):</label>
-        <input type="number" id="bombs" value="5" min="1" max="25" step="1" />
-        <br />
-        <button onclick="startGame()" id="start-button">Start Game</button>
-        <button onclick="claimCoins()" id="claim-button" disabled>Claim Coins</button>
+    <div id="controls">
+        <label for="bet">Bet Amount (coins):</label>
+        <input type="number" id="bet" min="1" value="1">
+        <label for="bombs">Number of Bombs:</label>
+        <input type="number" id="bombs" min="1" max="24" value="5">
+        <button id="startGame">Start Game</button>
+        <button id="claimCoins" disabled>Claim Coins</button>
     </div>
+    <div id="gameGrid"></div>
+    <div id="status">Starting multiplier: 1x</div>
 
-    <div class="grid" id="grid"></div>
+    <script>
+        let coins = 100;
+        let multiplier = 1;
+        let gameActive = false;
+        let revealedCells = 0;
 
-    <h2>Multiplier: <span id="multiplier">1</span></h2>
-    <h2>Game Status: <span id="status">In Progress</span></h2>
-    <div class="coin-info">
-        <h3>Your Bet: <span id="current-bet">0</span> coins</h3>
-    </div>
-</div>
+        document.getElementById('startGame').addEventListener('click', startGame);
+        document.getElementById('claimCoins').addEventListener('click', claimCoins);
 
-<script>
-    let grid;
-    let multiplier = 1;
-    let currentCoins = 100;
-    let betAmount = 10;
-    let bombs = 5;
-    let gameOver = false;
-    let gameStarted = false;
+        function startGame() {
+            const betAmount = parseInt(document.getElementById('bet').value);
+            const bombs = parseInt(document.getElementById('bombs').value);
 
-    function generateGrid() {
-        const gridElement = document.getElementById('grid');
-        gridElement.innerHTML = '';
-        grid = [];
-        for (let i = 0; i < 25; i++) {
-            grid.push({ revealed: false, type: 'coin' });
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.setAttribute('data-index', i);
-            cell.addEventListener('click', () => uncoverCell(i));
-            gridElement.appendChild(cell);
-        }
-    }
-
-    function startGame() {
-        bombs = parseInt(document.getElementById('bombs').value);
-        betAmount = parseInt(document.getElementById('bet').value);
-
-        // Validate inputs
-        if (betAmount <= 0 || !Number.isInteger(betAmount)) {
-            alert('Bet amount must be a whole number greater than 0.');
-            return;
-        }
-        if (bombs <= 0 || bombs > 25 || !Number.isInteger(bombs)) {
-            alert('Number of bombs must be a whole number between 1 and 25.');
-            return;
-        }
-        if (betAmount > currentCoins) {
-            alert('You don\'t have enough coins to bet!');
-            return;
-        }
-
-        currentCoins -= betAmount;
-        document.getElementById('coin-balance').textContent = currentCoins;
-        document.getElementById('current-bet').textContent = betAmount;
-        multiplier = 1 + (bombs / 25) * 2;
-        document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-        document.getElementById('status').textContent = 'In Progress';
-        gameOver = false;
-        gameStarted = false;
-        document.getElementById('claim-button').disabled = true;
-        document.getElementById('start-button').disabled = true;
-        document.getElementById('bet').disabled = true;
-        document.getElementById('bombs').disabled = true;
-        generateGrid();
-        placeBombs();
-    }
-
-    function placeBombs() {
-        let bombCount = 0;
-        while (bombCount < bombs) {
-            const index = Math.floor(Math.random() * 25);
-            if (grid[index].type === 'coin') {
-                grid[index].type = 'bomb';
-                bombCount++;
+            if (betAmount < 1 || bombs < 1 || !Number.isInteger(bombs)) {
+                alert('Please enter valid numbers for bet and bombs.');
+                return;
             }
-        }
-    }
-
-    function uncoverCell(index) {
-        if (gameOver || grid[index].revealed) return;
-
-        const cell = document.querySelector(`.cell[data-index='${index}']`);
-        cell.classList.add('shake');
-
-        setTimeout(() => {
-            grid[index].revealed = true;
-            cell.classList.remove('shake');
-
-            if (!gameStarted) {
-                gameStarted = true;
-                document.getElementById('claim-button').disabled = false;
+            if (bombs >= 25) {
+                alert('The number of bombs must be less than 25.');
+                return;
             }
 
-            if (grid[index].type === 'bomb') {
-                cell.classList.add('bomb');
-                cell.textContent = '💣';
-                document.getElementById('status').textContent = 'Game Over';
-                gameOver = true;
-                document.getElementById('claim-button').disabled = true;
-                document.getElementById('start-button').disabled = false;
-                document.getElementById('bet').disabled = false;
-                document.getElementById('bombs').disabled = false;
-            } else {
-                cell.classList.add('coin');
-                cell.textContent = '🪙';
-                multiplier *= 1.2;
-                document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+            document.getElementById('startGame').disabled = true;
+            document.getElementById('claimCoins').disabled = true;
+            gameActive = true;
+            revealedCells = 0;
+            multiplier = 1 + (bombs / 25) * 2; // Adjust multiplier based on bombs
+
+            updateStatus(`Game started! Multiplier: ${multiplier.toFixed(2)}x`);
+            generateGrid(bombs);
+        }
+
+        function generateGrid(bombs) {
+            const gameGrid = document.getElementById('gameGrid');
+            gameGrid.innerHTML = '';
+            const cells = Array(25).fill('coin');
+            for (let i = 0; i < bombs; i++) {
+                let index;
+                do {
+                    index = Math.floor(Math.random() * 25);
+                } while (cells[index] === 'bomb');
+                cells[index] = 'bomb';
             }
+
+            cells.forEach((content, index) => {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-cell');
+                cell.dataset.content = content;
+                cell.addEventListener('click', () => revealCell(cell));
+                gameGrid.appendChild(cell);
+            });
+        }
+
+        function revealCell(cell) {
+            if (!gameActive || cell.classList.contains('revealed')) return;
+
             cell.classList.add('revealed');
-        }, 500);
-    }
+            cell.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                cell.style.animation = '';
+                if (cell.dataset.content === 'bomb') {
+                    cell.textContent = '💣';
+                    gameOver(false);
+                } else {
+                    cell.textContent = '💰';
+                    revealedCells++;
+                    if (revealedCells === 1) {
+                        document.getElementById('claimCoins').disabled = false;
+                    }
+                    multiplier *= 1.1; // Increase multiplier for each coin found
+                    updateStatus(`Multiplier: ${multiplier.toFixed(2)}x`);
+                }
+            }, 500);
+        }
 
-    function claimCoins() {
-        if (!gameStarted || gameOver) return;
-        currentCoins += Math.floor(betAmount * multiplier);
-        document.getElementById('coin-balance').textContent = currentCoins;
-        document.getElementById('status').textContent = 'Coins Claimed';
-        document.getElementById('claim-button').disabled = true;
-        document.getElementById('start-button').disabled = false;
-        document.getElementById('bet').disabled = false;
-        document.getElementById('bombs').disabled = false;
-    }
+        function gameOver(won) {
+            gameActive = false;
+            document.getElementById('startGame').disabled = false;
+            if (won) {
+                alert('You won! Claim your coins!');
+            } else {
+                updateStatus('Game over! You hit a bomb.');
+                document.getElementById('claimCoins').disabled = true;
+            }
+        }
 
-    document.getElementById('bet').addEventListener('input', (e) => {
-        betAmount = parseInt(e.target.value);
-    });
+        function claimCoins() {
+            if (!gameActive || revealedCells === 0) return;
 
-    window.onload = () => {
-        document.getElementById('current-bet').textContent = betAmount;
-        document.getElementById('coin-balance').textContent = currentCoins;
-    };
-</script>
+            const betAmount = parseInt(document.getElementById('bet').value);
+            const winnings = betAmount * multiplier;
+            coins += winnings;
+            updateStatus(`You claimed ${winnings.toFixed(2)} coins! Total coins: ${coins.toFixed(2)}`);
+            gameActive = false;
+            document.getElementById('startGame').disabled = false;
+            document.getElementById('claimCoins').disabled = true;
+        }
 
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+    </script>
 </body>
 </html>
