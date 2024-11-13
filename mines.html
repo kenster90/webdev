@@ -167,6 +167,7 @@
                 cell.textContent = '💣';
                 document.getElementById('status').textContent = 'Game Over';
                 gameOver = true;
+                revealAllBombs();
                 document.getElementById('claim-button').disabled = true;
                 document.getElementById('start-button').disabled = false;
                 document.getElementById('bet').disabled = false;
@@ -190,16 +191,15 @@
         document.getElementById('start-button').disabled = false;
         document.getElementById('bet').disabled = false;
         document.getElementById('bombs').disabled = false;
-        revealBombs();
+        revealAllBombs();
     }
 
-    function revealBombs() {
-        for (let i = 0; i < grid.length; i++) {
+    function revealAllBombs() {
+        for (let i = 0; i < 25; i++) {
             if (grid[i].type === 'bomb' && !grid[i].revealed) {
                 const cell = document.querySelector(`.cell[data-index='${i}']`);
                 cell.classList.add('bomb');
                 cell.textContent = '💣';
-                cell.classList.add('revealed');
             }
         }
     }
@@ -209,8 +209,7 @@
     });
 
     window.onload = () => {
-        document.getElementById('current-bet').textContent = betAmount;
-        document.getElementById
+        document.getElementById('current-bet').textContent = bet
 <script>
     function revealAllBombs() {
         // Reveal the locations of all the bombs after the game ends
