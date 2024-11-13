@@ -3,60 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minesweeper Game</title>
-    <style>
-        
-        .game-container {
-            text-align: center;
-            margin: 20px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 60px);
-            grid-gap: 5px;
-            margin: 20px auto;
-            max-width: 320px;
-        }
-        .cell {
-            width: 60px;
-            height: 60px;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 24px;
-            transition: all 0.2s;
-        }
-        .cell.revealed {
-            background-color: #d4edda;
-        }
-        .cell.bomb {
-            background-color: #f8d7da;
-        }
-        .cell.coin {
-            background-color: #ffeeba;
-        }
-        .cell.shake {
-            animation: shake 0.5s;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
-        button:disabled {
-            background-color: #ddd;
-            cursor: not-allowed;
-        }
-    </style>
+    <title>Mines</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <div class="game-container">
-    <h1>Minesweeper Game</h1>
+    <h1>Mines</h1>
     <p>Click on the cells to uncover them! Avoid the bombs!</p>
 
     <div class="controls">
@@ -79,104 +32,6 @@
     </div>
 </div>
 
-<script>
-    let grid;
-    let multiplier = 1;
-    let currentCoins = 100;
-    let betAmount = 10;
-    let bombs = 5;
-    let gameOver = false;
-    let gameStarted = false;
-
-    function generateGrid() {
-        const gridElement = document.getElementById('grid');
-        gridElement.innerHTML = '';
-        grid = [];
-        for (let i = 0; i < 25; i++) {
-            grid.push({ revealed: false, type: 'coin' });
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.setAttribute('data-index', i);
-            cell.addEventListener('click', () => uncoverCell(i));
-            gridElement.appendChild(cell);
-        }
-    }
-
-    function startGame() {
-        bombs = parseInt(document.getElementById('bombs').value);
-        betAmount = parseInt(document.getElementById('bet').value);
-
-        // Validate inputs
-        if (betAmount <= 0 || !Number.isInteger(betAmount)) {
-            alert('Bet amount must be a whole number greater than 0.');
-            return;
-        }
-        if (bombs <= 0 || bombs > 25 || !Number.isInteger(bombs)) {
-            alert('Number of bombs must be a whole number between 1 and 25.');
-            return;
-        }
-        if (betAmount > currentCoins) {
-            alert('You don\'t have enough coins to bet!');
-            return;
-        }
-
-        currentCoins -= betAmount;
-        document.getElementById('coin-balance').textContent = currentCoins;
-        document.getElementById('current-bet').textContent = betAmount;
-        multiplier = 1 + (bombs / 25) * 2;
-        document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-        document.getElementById('status').textContent = 'In Progress';
-        gameOver = false;
-        gameStarted = false;
-        document.getElementById('claim-button').disabled = true;
-        document.getElementById('start-button').disabled = true;
-        document.getElementById('bet').disabled = true;
-        document.getElementById('bombs').disabled = true;
-        generateGrid();
-        placeBombs();
-    }
-
-    function placeBombs() {
-        let bombCount = 0;
-        while (bombCount < bombs) {
-            const index = Math.floor(Math.random() * 25);
-            if (grid[index].type === 'coin') {
-                grid[index].type = 'bomb';
-                bombCount++;
-            }
-        }
-    }
-
-    function uncoverCell(index) {
-        if (gameOver || grid[index].revealed) return;
-
-        const cell = document.querySelector(`.cell[data-index='${index}']`);
-        cell.classList.add('shake');
-
-        setTimeout(() => {
-            grid[index].revealed = true;
-            cell.classList.remove('shake');
-
-            if (!gameStarted) {
-                gameStarted = true;
-                document.getElementById('claim-button').disabled = false;
-            }
-
-            if (grid[index].type === 'bomb') {
-                cell.classList.add('bomb');
-                cell.textContent = '💣';
-                document.getElementById('status').textContent = 'Game Over';
-                gameOver = true;
-                document.getElementById('claim-button').disabled = true;
-                document.getElementById('start-button').disabled = false;
-                document.getElementById('bet').disabled = false;
-                document.getElementById('bombs').disabled = false;
-            } else {
-                cell.classList.add('coin');
-                cell.textContent = '🪙';
-                multiplier *= 1.1;
-                document.getElementById('multiplier').textContent = multiplier.toFixed(2);
-            }
-            cell.classList.add('revealed');
-        }, 500);
-    }
+<script src="script.js"></script>
+</body>
+</html>
