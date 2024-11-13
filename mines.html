@@ -244,4 +244,53 @@
         document.getElementById('current-bet').textContent = betAmount;
         document.getElementById('coin-balance').textContent = currentCoins;
     };
-</script>
+
+// Continuing JavaScript code for Mines game functionality
+
+// Function to disable inputs during game
+function disableInputs(disable) {
+    document.getElementById('bet').disabled = disable;
+    document.getElementById('bombs').disabled = disable;
+    document.getElementById('start-button').disabled = disable;
+}
+
+function uncoverCell(index) {
+    if (gameOver || grid[index].revealed) return;
+
+    const cell = document.querySelector(`.cell[data-index='${index}']`);
+    cell.classList.add('shake');
+
+    setTimeout(() => {
+        grid[index].revealed = true;
+        cell.classList.remove('shake');
+
+        if (!gameStarted) {
+            gameStarted = true;
+            document.getElementById('claim-button').disabled = false;
+        }
+
+        if (grid[index].type === 'bomb') {
+            cell.classList.add('bomb');
+            cell.textContent = '💣';
+            document.getElementById('status').textContent = 'Game Over';
+            gameOver = true;
+            disableInputs(false); // Re-enable inputs after game ends
+            document.getElementById('claim-button').disabled = true;
+        } else {
+            cell.classList.add('coin');
+            cell.textContent = '🪙';
+            multiplier *= 1.1;
+            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        }
+        cell.classList.add('revealed');
+    }, 500);
+}
+
+function claimCoins() {
+    if (!gameStarted || gameOver) return;
+    currentCoins += Math.floor(betAmount * multiplier);
+    document.getElementById('coin-balance').textContent = currentCoins;
+    document.getElementById('status').textContent = 'Coins Claimed';
+    document.getElementById('claim-button').disabled = true;
+    disableInputs(false); // Re-enable inputs
+}
